@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horizontal Scrollable Carousel</title>
+  <title>Auto-Moving Carousel with Swipe</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -45,36 +45,6 @@
       font-size: 18px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
-
-    .carousel-controls {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      width: 100%;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-
-    .carousel-button {
-      pointer-events: all;
-      background-color: rgba(0, 0, 0, 0.6);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 20px;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .carousel-button:hover {
-      background-color: rgba(0, 0, 0, 0.8);
-    }
   </style>
 </head>
 <body>
@@ -91,42 +61,65 @@
       <div class="card">9</div>
       <div class="card">10</div>
     </div>
-    <div class="carousel-controls">
-      <button class="carousel-button" id="prev">&#10094;</button>
-      <button class="carousel-button" id="next">&#10095;</button>
-    </div>
   </div>
 
   <script>
     const track = document.querySelector('.carousel-track');
     const cards = document.querySelectorAll('.card');
-    const nextButton = document.getElementById('next');
-    const prevButton = document.getElementById('prev');
-
     let currentIndex = 0;
+    let autoScrollInterval;
+    let startX = 0, currentTranslate = 0, prevTranslate = 0;
+    let isDragging = false;
 
+    // Update Carousel Position
     const updateCarousel = () => {
       const cardWidth = cards[0].offsetWidth + 20; // Card width + margin
       const offset = -(currentIndex * cardWidth);
       track.style.transform = `translateX(${offset}px)`;
     };
 
-    nextButton.addEventListener('click', () => {
-      if (currentIndex < cards.length - 4) { // Show 4 cards at a time
-        currentIndex++;
+    // Auto Scroll Functionality
+    const startAutoScroll = () => {
+      autoScrollInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % cards.length;
         updateCarousel();
-      }
-    });
+      }, 2000); // Adjust speed (in ms)
+    };
 
-    prevButton.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateCarousel();
-      }
-    });
+    const stopAutoScroll = () => clearInterval(autoScrollInterval);
 
-    // Initial setup
+    // Touch Handling for Mobile Swipe
+    const touchStart = (e) => {
+      stopAutoScroll();
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      prevTranslate = currentTranslate;
+    };
+
+    const touchMove = (e) => {
+      if (!isDragging) return;
+      const currentX = e.touches[0].clientX;
+      currentTranslate = prevTranslate + currentX - startX;
+      track.style.transform = `translateX(${currentTranslate}px)`;
+    };
+
+    const touchEnd = () => {
+      isDragging = false;
+      const cardWidth = cards[0].offsetWidth + 20;
+      currentIndex = Math.round(-currentTranslate / cardWidth);
+      currentIndex = Math.max(0, Math.min(currentIndex, cards.length - 1));
+      updateCarousel();
+      startAutoScroll();
+    };
+
+    // Event Listeners for Touch Events
+    track.addEventListener('touchstart', touchStart);
+    track.addEventListener('touchmove', touchMove);
+    track.addEventListener('touchend', touchEnd);
+
+    // Initialize
     updateCarousel();
+    startAutoScroll();
   </script>
 </body>
 </html>
