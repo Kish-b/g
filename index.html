@@ -16,19 +16,11 @@
       min-height: 100vh;
     }
 
-    .carousel {
-      position: relative;
-      width: 90%;
-      max-width: 800px;
-      overflow: hidden;
-      border-radius: 10px;
-      background-color: #fff;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
     .carousel-track {
       display: flex;
       transition: transform 0.5s ease-in-out;
+      width: 100vw; /* Full viewport width */
+      flex-wrap: nowrap; /* Prevent wrapping in desktop view */
     }
 
     .card {
@@ -78,44 +70,40 @@
 
     /* Tablet and Mobile View */
     @media (max-width: 768px) {
-      .carousel {
-        overflow: visible;
-      }
-
       .carousel-track {
-        flex-direction: column;
+        flex-wrap: wrap; /* Cards stack vertically */
+        transform: none; /* Reset any previous transformations */
+        transition: none; /* Disable transitions */
       }
 
       .card {
-        flex: 1; /* Full-width stacking */
-        margin: 10px 0;
+        flex: 1 0 100%; /* Full-width stacking */
         width: auto;
+        margin: 10px 0;
       }
 
       .carousel-controls {
-        display: none; /* Remove buttons */
+        display: none; /* Remove buttons for mobile and tablet */
       }
     }
   </style>
 </head>
 <body>
-  <div class="carousel">
-    <div class="carousel-track">
-      <div class="card">1</div>
-      <div class="card">2</div>
-      <div class="card">3</div>
-      <div class="card">4</div>
-      <div class="card">5</div>
-      <div class="card">6</div>
-      <div class="card">7</div>
-      <div class="card">8</div>
-      <div class="card">9</div>
-      <div class="card">10</div>
-    </div>
-    <div class="carousel-controls">
-      <button class="carousel-button" id="prev">&#10094;</button>
-      <button class="carousel-button" id="next">&#10095;</button>
-    </div>
+  <div class="carousel-track">
+    <div class="card">1</div>
+    <div class="card">2</div>
+    <div class="card">3</div>
+    <div class="card">4</div>
+    <div class="card">5</div>
+    <div class="card">6</div>
+    <div class="card">7</div>
+    <div class="card">8</div>
+    <div class="card">9</div>
+    <div class="card">10</div>
+  </div>
+  <div class="carousel-controls">
+    <button class="carousel-button" id="prev">&#10094;</button>
+    <button class="carousel-button" id="next">&#10095;</button>
   </div>
 
   <script>
@@ -123,28 +111,34 @@
     const cards = document.querySelectorAll('.card');
     const nextButton = document.getElementById('next');
     const prevButton = document.getElementById('prev');
-
     let currentIndex = 0;
 
     const updateCarousel = () => {
-      const cardWidth = cards[0].offsetWidth + 20; // Card width + margin
-      const offset = -(currentIndex * cardWidth);
-      track.style.transform = `translateX(${offset}px)`;
+      if (window.innerWidth > 768) { // Only apply carousel function for larger screens
+        const cardWidth = cards[0].offsetWidth + 20; // Card width + margin
+        const offset = -(currentIndex * cardWidth);
+        track.style.transform = `translateX(${offset}px)`;
+      } else {
+        track.style.transform = 'none'; // Disable carousel on small screens
+      }
     };
 
     nextButton.addEventListener('click', () => {
-      if (currentIndex < cards.length - 4) { // Show 4 cards at a time
+      if (window.innerWidth > 768 && currentIndex < cards.length - 4) { // Only work for larger screens
         currentIndex++;
         updateCarousel();
       }
     });
 
     prevButton.addEventListener('click', () => {
-      if (currentIndex > 0) {
+      if (window.innerWidth > 768 && currentIndex > 0) { // Only work for larger screens
         currentIndex--;
         updateCarousel();
       }
     });
+
+    // Update carousel on window resize
+    window.addEventListener('resize', updateCarousel);
 
     // Initial setup
     updateCarousel();
